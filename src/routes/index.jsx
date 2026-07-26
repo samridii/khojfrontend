@@ -4,11 +4,16 @@ import HomePage from "../pages/Home";
 import ExplorePage from "../pages/Explore/index";
 import AICompassPage from "../pages/AI/Compass/CompassPage";
 import CompassResultPage from "../pages/AI/Compass/CompassResultPage";
-import JourneyBuilderPage from "../pages/AI/Journey/JourneybuilderPage";
-import JourneyResultPage from "../pages/AI/Journey/JourneyresultPage";
+import JourneyBuilderPage from "../pages/AI/Journey/JourneyBuilderPage";
+import JourneyResultPage from "../pages/AI/Journey/JourneyResultPage";
 import AuthPage from "../pages/Auth/AuthPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/Auth/ResetPasswordPage";
+import CraftDetailPage      from "../pages/Craft/CraftDetailPage";
+import ArtisanStoryPage     from "../pages/Artisan/ArtisanStoryPage";
+import WorkshopBookingPage  from "../pages/Workshops/WorkshopBookingPage";
+import BookingConfirmedPage from "../pages/Workshops/BookingConfirmedPage";
+import MyBookingsPage       from "../pages/Workshops/MyBookingsPage";
 
 const Placeholder = ({ name }) => (
   <div className="min-h-screen flex items-center justify-center">
@@ -40,6 +45,11 @@ const router = createBrowserRouter([
   { path: "/profile",                   element: <MainLayout><Placeholder name="My Profile" /></MainLayout> },
   { path: "/about",                     element: <MainLayout><Placeholder name="About Us" /></MainLayout> },
   { path: "/bookings",                  element: <MainLayout><Placeholder name="My Bookings" /></MainLayout> },
+  { path: "/craft/:slug",              element: <MainLayout><CraftDetailPage /></MainLayout> },
+{ path: "/stories/:slug",            element: <MainLayout><ArtisanStoryPage /></MainLayout> },
+{ path: "/workshops/book/:id",       element: <MainLayout><WorkshopBookingPage /></MainLayout> },
+{ path: "/bookings/confirmed",       element: <MainLayout><BookingConfirmedPage /></MainLayout> },
+{ path: "/bookings",                 element: <MainLayout><MyBookingsPage /></MainLayout> },
 ]);
 
 export default router;

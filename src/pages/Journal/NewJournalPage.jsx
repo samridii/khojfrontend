@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Bold, Italic, Quote, Link2, List,
-  Camera, MapPin, AlertCircle, Loader, X
+  Camera, MapPin, AlertCircle, Loader, X, Upload, Image
 } from "lucide-react";
 import api, { getApiError } from "../../services/api";
 
@@ -22,20 +22,63 @@ const DISTRICTS = [
   "Mustang", "Solukhumbu", "Palpa", "Dolpa", "Humla",
 ];
 
-export default function NewJournalPage() {
-  const navigate = useNavigate();
+// Convert file to base64 data URL for preview
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-  const [title,    setTitle]    = useState("");
-  const [content,  setContent]  = useState("");
-  const [location, setLocation] = useState("");
-  const [district, setDistrict] = useState("");
-  const [mood,     setMood]     = useState("reflective");
-  const [era,      setEra]      = useState("");
-  const [tags,     setTags]     = useState([]);
-  const [tagInput, setTagInput] = useState("");
+export default function NewJournalPage() {
+  const navigate  = useNavigate();
+  const fileInput = useRef(null);
+
+  const [title,     setTitle]     = useState("");
+  const [content,   setContent]   = useState("");
+  const [location,  setLocation]  = useState("");
+  const [district,  setDistrict]  = useState("");
+  const [mood,      setMood]      = useState("reflective");
+  const [era,       setEra]       = useState("");
+  const [tags,      setTags]      = useState([]);
+  const [tagInput,  setTagInput]  = useState("");
   const [visitDate, setVisitDate] = useState(new Date().toISOString().split("T")[0]);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState("");
+  const [photos,    setPhotos]    = useState([]);   // { file, preview, label }
+  const [uploading, setUploading] = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState("");
+
+  // Handle file selection from input or drop
+  const handleFiles = async (files) => {
+    setUploading(true);
+    const newPhotos = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) continue;
+      if (photos.length + newPhotos.length >= 6) break; // max 6 images
+      try {
+        const preview = await fileToDataUrl(file);
+        newPhotos.push({ file, preview, label: file.name.replace(/\.[^/.]+$/, "") });
+      } catch {}
+    }
+    setPhotos(prev => [...prev, ...newPhotos]);
+    setUploading(false);
+  };
+
+  const handleFileInput = (e) => {
+    if (e.target.files?.length) handleFiles(e.target.files);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+  };
+
+  const removePhoto = (index) =>
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+
+  const updateLabel = (index, label) =>
+    setPhotos(prev => prev.map((p, i) => i === index ? { ...p, label } : p));
 
   const addTag = (e) => {
     if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
@@ -55,6 +98,10 @@ export default function NewJournalPage() {
     setError("");
     setLoading(true);
     try {
+      // Store photo previews as data URLs (base64)
+      // In production replace with real upload to S3 or Cloudinary
+      const photoUrls = photos.map(p => p.preview);
+
       await api.post("/journal", {
         title,
         content,
@@ -62,6 +109,7 @@ export default function NewJournalPage() {
         location,
         district,
         tags,
+        photos: photoUrls,
         visitDate: new Date(visitDate).toISOString(),
       });
       navigate("/journal");
@@ -74,15 +122,14 @@ export default function NewJournalPage() {
 
   const handleDiscard = () => navigate("/journal");
 
-  // Visual integrity score
-  const visualScore = [title, content, location, tags.length > 0].filter(Boolean).length;
-  const scoreLabel  = ["Low", "Medium", "High", "High"][visualScore - 1] || "Low";
-  const scoreColor  = ["text-red-500", "text-amber-500", "text-green-600", "text-green-600"][visualScore - 1] || "text-red-500";
+  const visualScore = [title, content, location, tags.length > 0, photos.length > 0].filter(Boolean).length;
+  const scoreLabel  = visualScore >= 4 ? "High" : visualScore >= 2 ? "Medium" : "Low";
+  const scoreColor  = visualScore >= 4 ? "text-green-600" : visualScore >= 2 ? "text-amber-500" : "text-red-500";
 
   return (
     <div className="min-h-screen" style={{ background: "#EAE6DC" }}>
       <div className="max-w-screen-xl mx-auto px-4 py-8">
-        <div className="flex gap-4 h-[calc(100vh-140px)]">
+        <div className="flex gap-4" style={{ height: "calc(100vh - 140px)" }}>
 
           {/* LEFT — Visual Context */}
           <motion.div
@@ -99,30 +146,83 @@ export default function NewJournalPage() {
               Drag historical fragments into your story to anchor your memories.
             </p>
 
-            {/* Fragment grid */}
+            {/* Photo grid */}
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Durbar Square, 1974", gradient: "from-gray-400 to-gray-600" },
-                { label: "Ancestor's Script",   gradient: "from-amber-200 to-amber-400" },
-                { label: "Mela Offerings",       gradient: "from-orange-400 to-red-500" },
-              ].map(({ label, gradient }) => (
-                <div
-                  key={label}
-                  className="rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                  <div className={`h-20 bg-gradient-to-br ${gradient}`} />
-                  <div className="bg-white px-2 py-1.5">
-                    <p className="font-serif italic text-[9px] text-ink-muted">{label}</p>
+              {photos.map((photo, i) => (
+                <div key={i} className="relative group rounded-lg overflow-hidden">
+                  <img
+                    src={photo.preview}
+                    alt={photo.label}
+                    className="w-full h-20 object-cover"
+                  />
+                  {/* Remove button */}
+                  <button
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={10} />
+                  </button>
+                  {/* Label input */}
+                  <div className="bg-white px-1.5 py-1">
+                    <input
+                      type="text"
+                      value={photo.label}
+                      onChange={e => updateLabel(i, e.target.value)}
+                      placeholder="Caption..."
+                      className="w-full font-serif italic text-[9px] text-ink-muted bg-transparent focus:outline-none"
+                    />
                   </div>
                 </div>
               ))}
 
-              {/* Add Fragment */}
-              <div className="rounded-lg border-2 border-dashed border-[#D7CCB3] h-28 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-copper transition-colors">
-                <Camera size={18} className="text-ink-light" />
-                <p className="font-body text-[10px] text-ink-light">Add Fragment</p>
-              </div>
+              {/* Add Fragment drop zone */}
+              {photos.length < 6 && (
+                <div
+                  onClick={() => fileInput.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={e => e.preventDefault()}
+                  className="rounded-lg border-2 border-dashed border-[#D7CCB3] h-28 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-copper hover:bg-[#FDF8F0] transition-all"
+                >
+                  {uploading ? (
+                    <Loader size={16} className="animate-spin text-copper" />
+                  ) : (
+                    <>
+                      <Camera size={18} className="text-ink-light" />
+                      <p className="font-body text-[10px] text-ink-light text-center leading-snug px-2">
+                        Add Fragment
+                      </p>
+                      <p className="font-mono text-[8px] text-ink-light/60 uppercase tracking-wider">
+                        or drag & drop
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFileInput}
+            />
+
+            {/* Upload button */}
+            <button
+              onClick={() => fileInput.current?.click()}
+              className="w-full flex items-center justify-center gap-2 py-2 border border-[#D7CCB3] rounded-lg font-mono text-[10px] uppercase tracking-wider text-ink-muted hover:border-copper hover:text-copper transition-colors"
+            >
+              <Upload size={12} /> Upload Photos
+            </button>
+
+            {photos.length > 0 && (
+              <p className="font-mono text-[9px] text-ink-light text-center">
+                {photos.length}/6 fragments added
+              </p>
+            )}
 
             {/* Mood selector */}
             <div className="space-y-2 pt-2 border-t border-[#F0EDE8]">
@@ -167,7 +267,7 @@ export default function NewJournalPage() {
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
             }}
           >
-            {/* Editor top bar */}
+            {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-[#E8E2D8]">
               <div className="flex items-center gap-4 text-ink-muted">
                 <div className="flex items-center gap-1.5">
@@ -178,9 +278,15 @@ export default function NewJournalPage() {
                 </div>
                 <span className="font-mono text-[10px] text-green-600">● Draft saved</span>
               </div>
+              {photos.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <Image size={12} className="text-copper" />
+                  <span className="font-mono text-[10px] text-copper">{photos.length} photo{photos.length > 1 ? "s" : ""}</span>
+                </div>
+              )}
             </div>
 
-            {/* Scrollable content */}
+            {/* Scrollable editor area */}
             <div className="flex-1 overflow-y-auto p-8 space-y-6">
               {/* Title */}
               <input
@@ -194,15 +300,15 @@ export default function NewJournalPage() {
               {/* Formatting toolbar */}
               <div className="flex items-center gap-1">
                 {[
-                  { Icon: Bold,   title: "Bold" },
-                  { Icon: Italic, title: "Italic" },
-                  { Icon: Quote,  title: "Quote" },
-                  { Icon: Link2,  title: "Link" },
-                  { Icon: List,   title: "List" },
-                ].map(({ Icon, title }) => (
+                  { Icon: Bold,   label: "Bold" },
+                  { Icon: Italic, label: "Italic" },
+                  { Icon: Quote,  label: "Quote" },
+                  { Icon: Link2,  label: "Link" },
+                  { Icon: List,   label: "List" },
+                ].map(({ Icon, label }) => (
                   <button
-                    key={title}
-                    title={title}
+                    key={label}
+                    title={label}
                     className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#EDE8D8] text-ink-muted hover:text-ink transition-colors"
                   >
                     <Icon size={14} />
@@ -215,19 +321,49 @@ export default function NewJournalPage() {
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 placeholder="Once upon a time..."
-                className="w-full flex-1 bg-transparent font-body text-base text-ink placeholder-[#C4B8A8] focus:outline-none resize-none leading-relaxed min-h-[300px]"
+                className="w-full bg-transparent font-body text-base text-ink placeholder-[#C4B8A8] focus:outline-none resize-none leading-relaxed min-h-[300px]"
               />
+
+              {/* Photo preview strip inside editor */}
+              {photos.length > 0 && (
+                <div className="pt-4 border-t border-[#E8E2D8]">
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-ink-light mb-3">
+                    Attached Fragments
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
+                    {photos.map((photo, i) => (
+                      <div key={i} className="relative group">
+                        <div className="bg-white shadow-pin p-1.5 pb-5 w-24">
+                          <img
+                            src={photo.preview}
+                            alt={photo.label}
+                            className="w-full h-16 object-cover"
+                          />
+                          <p className="font-serif italic text-[8px] text-ink-muted text-center mt-1 truncate px-0.5">
+                            {photo.label || "Fragment"}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removePhoto(i)}
+                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={8} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Bottom actions */}
             <div className="px-6 py-4 border-t border-[#E8E2D8] flex items-center justify-between">
-              {error && (
+              {error ? (
                 <div className="flex items-center gap-2 text-red-500">
                   <AlertCircle size={13} />
                   <span className="font-body text-xs">{error}</span>
                 </div>
-              )}
-              {!error && <div />}
+              ) : <div />}
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleDiscard}
@@ -240,11 +376,10 @@ export default function NewJournalPage() {
                   disabled={loading}
                   className="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white font-display font-bold text-sm rounded-lg hover:bg-primary-light transition-colors disabled:opacity-60"
                 >
-                  {loading ? (
-                    <><Loader size={14} className="animate-spin" /> Saving…</>
-                  ) : (
-                    <>💾 Save Journal</>
-                  )}
+                  {loading
+                    ? <><Loader size={14} className="animate-spin" /> Saving…</>
+                    : <>💾 Save Journal</>
+                  }
                 </button>
               </div>
             </div>
@@ -317,8 +452,7 @@ export default function NewJournalPage() {
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {tags.map(tag => (
-                  <span
-                    key={tag}
+                  <span key={tag}
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/70 border border-[#D7CCB3] font-mono text-[9px] text-ink"
                   >
                     #{tag}
@@ -344,17 +478,23 @@ export default function NewJournalPage() {
                 <span className="text-copper">◎</span>
                 <p className="font-display font-bold text-sm text-ink">Integrity Check</p>
               </div>
-              <div className="space-y-2">
-                {[
-                  { label: "Visual Coverage",   value: title && content ? "High" : "Low", valueColor: title && content ? "text-green-600" : "text-red-500" },
-                  { label: "Source References", value: `${tags.length} Items`,              valueColor: "text-ink" },
-                  { label: "Heritage Impact",   value: "●●●",                              valueColor: "text-copper" },
-                ].map(({ label, value, valueColor }) => (
-                  <div key={label} className="flex items-center justify-between">
-                    <span className="font-body text-xs text-ink-muted">{label}</span>
-                    <span className={`font-mono text-xs font-bold ${valueColor}`}>{value}</span>
-                  </div>
-                ))}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-xs text-ink-muted">Visual Coverage</span>
+                  <span className={`font-mono text-xs font-bold ${scoreColor}`}>{scoreLabel}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-xs text-ink-muted">Source References</span>
+                  <span className="font-mono text-xs font-bold text-ink">{tags.length} Items</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-xs text-ink-muted">Photos Added</span>
+                  <span className="font-mono text-xs font-bold text-ink">{photos.length}/6</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-body text-xs text-ink-muted">Heritage Impact</span>
+                  <span className="font-mono text-xs text-copper">●●●</span>
+                </div>
               </div>
             </div>
           </motion.div>

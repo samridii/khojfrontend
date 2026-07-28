@@ -1,164 +1,124 @@
-import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+// Footer — only implemented pages, seamless torn edge transition, no Journeys
+import { Link } from "react-router-dom";
 
-// Social SVG icons (lucide-react 0.383 doesn't have Instagram/Facebook)
-const InstagramIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-  </svg>
-)
-const FacebookIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-  </svg>
-)
-const MailIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-  </svg>
-)
-import { useState } from 'react'
-
-const DISCOVER_LINKS = [
-  { label: 'About Us',       to: '/about' },
-  { label: 'Archives',       to: '/explore' },
-  { label: 'Community',      to: '/explore?type=community' },
-  { label: 'Journeys',       to: '/journeys' },
-]
-const LEGAL_LINKS = [
-  { label: 'Privacy Policy',     to: '/privacy' },
-  { label: 'Terms of Use',       to: '/terms' },
-  { label: 'Responsible Travel', to: '/responsible-travel' },
-]
+const LINKS = {
+  Discover: [
+    { label: "Explore", to: "/explore" },
+    { label: "Workshops", to: "/workshops" },
+    { label: "AI Compass", to: "/ai/compass" },
+    { label: "Journey Builder", to: "/ai/journey-builder" },
+    { label: "About", to: "/about" },
+  ],
+  Account: [
+    { label: "My Profile", to: "/profile" },
+    { label: "My Bookings", to: "/bookings" },
+    { label: "Collections", to: "/collections" },
+    { label: "Journal", to: "/journal" },
+  ],
+  Legal: [
+    { label: "Privacy Policy", to: "#" },
+    { label: "Terms of Use", to: "#" },
+    { label: "Cookie Policy", to: "#" },
+  ],
+};
 
 export default function Footer() {
-  const [email, setEmail] = useState('')
-
-  const handleSubscribe = (e) => {
-    e.preventDefault()
-    setEmail('')
-  }
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-cream-warm relative overflow-hidden">
-
-      {/* Torn paper top edge */}
-      <div className="absolute top-0 left-0 right-0 h-4 overflow-hidden">
-        <svg viewBox="0 0 1200 16" preserveAspectRatio="none" className="w-full h-full">
-          <path d="M0 16 Q25 0 50 16 Q75 0 100 16 Q125 0 150 16 Q175 0 200 16 Q225 0 250 16 Q275 0 300 16 Q325 0 350 16 Q375 0 400 16 Q425 0 450 16 Q475 0 500 16 Q525 0 550 16 Q575 0 600 16 Q625 0 650 16 Q675 0 700 16 Q725 0 750 16 Q775 0 800 16 Q825 0 850 16 Q875 0 900 16 Q925 0 950 16 Q975 0 1000 16 Q1025 0 1050 16 Q1075 0 1100 16 Q1125 0 1150 16 Q1175 0 1200 16 Z"
-            fill="#FFF9ED" />
+    <>
+      // Seamless torn edge — uses the sage background colour matching the section above
+      // The SVG colour must match the section above the footer (sage #B7B9A2)
+      <div style={{ background: "#B7B9A2", lineHeight: 0 }}>
+        <svg
+          viewBox="0 0 1440 48"
+          preserveAspectRatio="none"
+          className="w-full"
+          style={{ display: "block", marginBottom: -1 }}
+        >
+          <path
+            d="M0 48 L0 24
+               Q24 6  48 18  Q72 30  96 18
+               Q120 6 144 18 Q168 30 192 18
+               Q216 6 240 18 Q264 30 288 18
+               Q312 6 336 18 Q360 30 384 18
+               Q408 6 432 18 Q456 30 480 18
+               Q504 6 528 18 Q552 30 576 18
+               Q600 6 624 18 Q648 30 672 18
+               Q696 6 720 18 Q744 30 768 18
+               Q792 6 816 18 Q840 30 864 18
+               Q888 6 912 18 Q936 30 960 18
+               Q984 6 1008 18 Q1032 30 1056 18
+               Q1080 6 1104 18 Q1128 30 1152 18
+               Q1176 6 1200 18 Q1224 30 1248 18
+               Q1272 6 1296 18 Q1320 30 1344 18
+               Q1368 6 1392 18 Q1416 30 1440 18
+               L1440 48 Z"
+            fill="#EBE2C8"
+          />
         </svg>
       </div>
 
-      <div className="max-w-screen-xl mx-auto px-8 lg:px-16 pt-20 pb-8">
+      // Footer body
+      <footer style={{ background: "#EBE2C8" }} className="px-6 lg:px-16 pt-14 pb-10">
+        <div className="max-w-screen-xl mx-auto">
 
-        {/* ── Main Footer Grid ── */}
-        <div className="flex flex-col lg:flex-row justify-between gap-12 pb-12">
+          // Top row — logo + columns
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 pb-12 border-b border-[#D7CCB3]">
 
-          {/* Brand */}
-          <div className="lg:max-w-sm space-y-6">
-            <div>
-              <h2 className="font-display font-extrabold text-7xl leading-none text-primary tracking-tight">
+            // Brand
+            <div className="flex-shrink-0 space-y-4">
+              <Link to="/" className="font-display font-bold text-3xl text-primary tracking-tight">
                 KHOJ
-              </h2>
-              <p className="font-body text-base leading-relaxed text-primary opacity-80 mt-4 max-w-xs">
-                Preserving the Living Heritage of Nepal through community-led exploration and intelligent documentation.
+              </Link>
+              <p className="font-body text-xs text-ink-muted leading-relaxed max-w-xs">
+                An AI-powered cultural discovery platform connecting you to the living heritage of Nepal — crafts, food, festivals, music, and the communities that carry them.
               </p>
-            </div>
-
-            {/* Social icons */}
-            <div className="flex items-center gap-5">
-              <a href="#" aria-label="Instagram"
-                className="text-primary hover:text-copper transition-colors">
-                <InstagramIcon/>
-              </a>
-              <a href="#" aria-label="Facebook"
-                className="text-primary hover:text-copper transition-colors">
-                <FacebookIcon/>
-              </a>
-              <a href="#" aria-label="Email"
-                className="text-primary hover:text-copper transition-colors">
-                <MailIcon/>
-              </a>
-            </div>
-          </div>
-
-          {/* Nav Columns */}
-          <div className="flex gap-16 lg:gap-24">
-            {/* Discover */}
-            <div className="space-y-6">
-              <h5 className="font-mono font-bold text-sm uppercase tracking-[3px] text-primary">
-                Discover
-              </h5>
-              <ul className="space-y-4">
-                {DISCOVER_LINKS.map(({ label, to }) => (
-                  <li key={to}>
-                    <Link to={to}
-                      className="font-body text-lg text-sage-dark hover:text-primary transition-colors">
-                      {label}
-                    </Link>
-                  </li>
+              // Barcode decoration
+              <div className="flex items-end gap-0.5 mt-4 opacity-30">
+                {[3,5,2,4,3,6,2,5,3,4,2,5,3,4,5,2,4,3].map((h, i) => (
+                  <div key={i} style={{ width: 2, height: h * 4, background: "#59200F" }} />
                 ))}
-              </ul>
+              </div>
             </div>
 
-            {/* Legal */}
-            <div className="space-y-6">
-              <h5 className="font-mono font-bold text-sm uppercase tracking-[3px] text-primary">
-                Legal
-              </h5>
-              <ul className="space-y-4">
-                {LEGAL_LINKS.map(({ label, to }) => (
-                  <li key={to}>
-                    <Link to={to}
-                      className="font-body text-lg text-sage-dark hover:text-primary transition-colors">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Newsletter */}
-            <div className="space-y-4 max-w-[260px]">
-              <h5 className="font-mono font-bold text-sm uppercase tracking-[3px] text-primary">
-                Newsletter
-              </h5>
-              <p className="font-body text-sm text-sage-dark opacity-70 leading-relaxed">
-                Stories, festivals & cultural finds — delivered to your inbox.
-              </p>
-              <form onSubmit={handleSubscribe}
-                className="border-b-2 border-[rgba(74,93,78,0.3)] pb-3">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="Your email..."
-                    className="flex-1 bg-transparent font-body text-base text-ink placeholder-gray-400 focus:outline-none"
-                    required
-                  />
-                  <button type="submit"
-                    className="text-primary hover:text-copper transition-colors flex-shrink-0">
-                    <ArrowRight size={20}/>
-                  </button>
+            // Nav columns
+            <div className="flex-1 grid grid-cols-3 gap-8">
+              {Object.entries(LINKS).map(([col, items]) => (
+                <div key={col} className="space-y-4">
+                  <h3 className="font-mono text-[10px] font-bold uppercase tracking-[3px] text-copper">
+                    {col}
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {items.map(({ label, to }) => (
+                      <li key={label}>
+                        <Link
+                          to={to}
+                          className="font-body text-sm text-ink-muted hover:text-primary transition-colors"
+                        >
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </form>
+              ))}
             </div>
-          </div>
-        </div>
 
-        {/* ── Bottom Bar ── */}
-        <div className="border-t border-[rgba(74,93,78,0.1)] pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 opacity-60">
-          <p className="font-mono text-xs text-sage-dark">
-            © 2026 KHOJ. Preserving the soul of Nepal.
-          </p>
-          <div className="flex items-center gap-8">
-            <span className="font-mono text-xs text-sage-dark">Privacy Policy</span>
-            <span className="font-mono text-xs text-sage-dark">Terms of Use</span>
           </div>
+
+          // Bottom row
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="font-mono text-[10px] text-ink-light uppercase tracking-widest">
+              {year} KHOJ. Preserving Nepal's Living Heritage.
+            </p>
+            <p className="font-mono text-[10px] text-ink-light uppercase tracking-widest">
+              Built with care in Kathmandu.
+            </p>
+          </div>
+
         </div>
-      </div>
-    </footer>
-  )
+      </footer>
+    </>
+  );
 }

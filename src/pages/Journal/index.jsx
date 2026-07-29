@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Plus, BookOpen, Music, Palette, MapPin } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, BookOpen, Music, Palette, MapPin, Trash2, X } from "lucide-react";
 import api, { getApiError } from "../../services/api";
 
 const MOOD_ICONS = {
@@ -13,17 +13,69 @@ const MOOD_ICONS = {
   nostalgic:    { Icon: Music,    color: "bg-orange-100 text-orange-600" },
 };
 
-// Polaroid memory card
-function MemoryCard({ entry, rotation }) {
+// Small confirm popover so a stray click can't wipe out a memory
+function DeleteConfirm({ onConfirm, onCancel, deleting }) {
   return (
     <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.15 }}
+      className="absolute inset-0 z-20 bg-black/60 flex flex-col items-center justify-center gap-2 p-3"
+      onClick={e => e.stopPropagation()}
+    >
+      <p className="font-body text-[11px] text-white text-center leading-snug">
+        Delete this memory?
+      </p>
+      <div className="flex gap-2">
+        <button
+          onClick={onConfirm}
+          disabled={deleting}
+          className="px-3 py-1 bg-red-600 text-white font-mono text-[9px] font-bold uppercase tracking-wider hover:bg-red-700 transition-colors disabled:opacity-60"
+        >
+          {deleting ? "…" : "Delete"}
+        </button>
+        <button
+          onClick={onCancel}
+          disabled={deleting}
+          className="px-3 py-1 bg-white/20 text-white font-mono text-[9px] font-bold uppercase tracking-wider hover:bg-white/30 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// Polaroid memory card
+function MemoryCard({ entry, rotation, onDelete }) {
+  const [confirming, setConfirming] = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
+  const [error,      setError]      = useState("");
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      await onDelete(entry._id);
+    } catch (err) {
+      setError(getApiError(err));
+      setDeleting(false);
+      setConfirming(false);
+    }
+  };
+
+  return (
+    <motion.div
+      layout
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
       viewport={{ once: true }}
-      className="bg-white shadow-pin p-2.5 pb-8 cursor-pointer hover:-translate-y-1 transition-transform duration-300"
+      className="relative bg-white shadow-pin p-2.5 pb-8 cursor-pointer hover:-translate-y-1 transition-transform duration-300 group"
       style={{ transform: `rotate(${rotation}deg)` }}
     >
-      <div className="w-full h-36 bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 overflow-hidden">
+      <div className="relative w-full h-36 bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 overflow-hidden">
         {entry.photos?.[0] ? (
           <img src={entry.photos[0]} alt={entry.title} className="w-full h-full object-cover" />
         ) : (
@@ -31,10 +83,30 @@ function MemoryCard({ entry, rotation }) {
             <BookOpen size={32} className="text-gray-600" />
           </div>
         )}
+
+        {/* Delete icon — shows on hover, opens a confirm step before removing */}
+        <button
+          onClick={e => { e.stopPropagation(); setConfirming(true); }}
+          aria-label="Delete memory"
+          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 z-10"
+        >
+          <Trash2 size={12} className="text-white"/>
+        </button>
+
+        <AnimatePresence>
+          {confirming && (
+            <DeleteConfirm
+              deleting={deleting}
+              onConfirm={handleDelete}
+              onCancel={() => setConfirming(false)}
+            />
+          )}
+        </AnimatePresence>
       </div>
       <div className="mt-2 px-1">
         <p className="font-display font-bold text-xs text-ink leading-snug">{entry.title}</p>
         <p className="font-serif italic text-[10px] text-ink-muted mt-0.5">{entry.location || entry.district}</p>
+        {error && <p className="font-body text-[10px] text-red-500 mt-1">{error}</p>}
       </div>
     </motion.div>
   );
@@ -107,6 +179,11 @@ export default function JournalPage() {
     };
     fetch();
   }, []);
+
+  const handleDeleteEntry = async (id) => {
+    await api.delete(`/journal/${id}`);
+    setEntries(prev => prev.filter(e => e._id !== id));
+  };
 
   const recent   = entries.slice(0, 3);
   const timeline = entries;
@@ -196,9 +273,16 @@ export default function JournalPage() {
 
               {!loading && recent.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                  {recent.map((entry, i) => (
-                    <MemoryCard key={entry._id} entry={entry} rotation={rotations[i % rotations.length]} />
-                  ))}
+                  <AnimatePresence>
+                    {recent.map((entry, i) => (
+                      <MemoryCard
+                        key={entry._id}
+                        entry={entry}
+                        rotation={rotations[i % rotations.length]}
+                        onDelete={handleDeleteEntry}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </div>
               )}
             </div>

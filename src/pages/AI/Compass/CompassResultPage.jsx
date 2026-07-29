@@ -1,23 +1,30 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronLeft } from "lucide-react";
 import api, { getApiError } from "../../../services/api";
 
-// Scrapbook photo cards with gradients representing Nepal imagery
-const SCRAPBOOK_GRADIENTS = [
-  "from-blue-800 via-slate-600 to-gray-700",
-  "from-amber-600 via-orange-500 to-yellow-600",
-  "from-sky-400 via-blue-300 to-indigo-400",
-  "from-yellow-700 via-amber-600 to-orange-700",
-  "from-indigo-800 via-purple-700 to-slate-800",
+// Real Nepal-culture images, cycled across scrapbook cards
+const SCRAPBOOK_IMAGES = [
+  "https://images.unsplash.com/photo-1584395631446-e41b0fc3f68d?w=400&q=80", // Himalayan peaks
+  "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=400&q=80", // Festival
+  "https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=400&q=80", // Prayer flags over mountains
+  "https://images.unsplash.com/photo-1755011309974-fd02724c4a2d?w=400&q=80", // Thangka/Paubha craft
+  "https://images.unsplash.com/photo-1662721737580-b1558a41a49a?w=400&q=80", // Heritage temple
 ];
 
 function ScrapbookCard({ label, index }) {
   return (
-    <div className="flex-shrink-0 w-44 bg-white shadow-pin p-2 pb-7">
-      <div className={`w-full h-36 bg-gradient-to-br ${SCRAPBOOK_GRADIENTS[index % SCRAPBOOK_GRADIENTS.length]}`} />
-      <p className="font-body text-xs text-ink-muted text-center mt-2 leading-snug px-1">{label}</p>
+    <div className="flex-shrink-0 w-64 bg-white shadow-pin p-2.5 pb-8">
+      <div className="w-full h-48 overflow-hidden">
+        <img
+          src={SCRAPBOOK_IMAGES[index % SCRAPBOOK_IMAGES.length]}
+          alt={label}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <p className="font-body text-sm text-ink-muted text-center mt-2.5 leading-snug px-1">{label}</p>
     </div>
   );
 }
@@ -27,7 +34,6 @@ export default function CompassResultPage() {
   const navigate  = useNavigate();
   const [refine,  setRefine]  = useState("");
   const [refining, setRefining] = useState(false);
-  const scrollRef = useRef(null);
 
   const result = location.state?.result;
 
@@ -74,10 +80,6 @@ export default function CompassResultPage() {
     ...(result?.results?.music    || []).map(m => m),
   ].slice(0, 5);
 
-  const scrollScrapbook = (dir) => {
-    if (scrollRef.current) scrollRef.current.scrollBy({ left: dir * 200, behavior: "smooth" });
-  };
-
   const handleRefine = async () => {
     if (!refine.trim()) return;
     setRefining(true);
@@ -112,7 +114,7 @@ export default function CompassResultPage() {
     <div className="min-h-screen" style={{ background: "#F2EDE4" }}>
 
       {/* Match Hero */}
-      <section className="max-w-screen-xl mx-auto px-6 lg:px-20 pt-16 pb-14">
+      <section className="max-w-screen-xl mx-auto px-7 lg:px-20 pt-16 pb-14">
         <div className="flex flex-col lg:flex-row items-start gap-14">
 
           {/* Left */}
@@ -122,12 +124,7 @@ export default function CompassResultPage() {
             transition={{ duration: 0.6 }}
             className="flex-1 space-y-6"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-px bg-copper" />
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[3px] text-copper">
-                Cultural Match Found
-              </span>
-            </div>
+            
 
             <h1 className="font-display font-bold text-6xl lg:text-7xl leading-[1] text-primary">
               {matchPercent}%<br />
@@ -160,13 +157,11 @@ export default function CompassResultPage() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-display font-bold text-sm hover:bg-primary-light transition-colors shadow-pin">
                 Begin Your Journey <ArrowRight size={16} />
               </Link>
-              <button className="inline-flex items-center gap-2 px-6 py-3 border-2 border-[#D7CCB3] bg-white text-ink font-display font-bold text-sm hover:border-primary hover:text-primary transition-colors">
-                <BookOpen size={15} /> Read Heritage Log
-              </button>
+              
             </div>
           </motion.div>
 
-          {/* Right — Polaroid stack */}
+          {/* Right — Polaroid stack with real photos */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -174,17 +169,39 @@ export default function CompassResultPage() {
             className="relative flex-shrink-0 w-72 h-72"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-white shadow-ledger p-3 pb-8 rotate-3">
-              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900" />
+              <div className="w-full h-full overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1662721737580-b1558a41a49a?w=500&q=80"
+                  alt="Nepali heritage temple"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
             <div className="absolute top-4 left-0 w-60 h-60 bg-white shadow-ledger p-3 pb-8 -rotate-2 z-10">
-              <div className="w-full h-full bg-gradient-to-br from-amber-600 via-orange-700 to-red-800 flex items-end p-2">
-                <p className="font-body text-[10px] text-white/70 italic leading-snug">
-                  "{culturalInsight.slice(0, 80)}…"
-                </p>
+              <div className="relative w-full h-full overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=500&q=80"
+                  alt="Nepali festival"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-3">
+                  <p className="font-body text-[11px] text-white/90 italic leading-relaxed line-clamp-4">
+                    "{culturalInsight.slice(0, 80)}…"
+                  </p>
+                </div>
               </div>
             </div>
             <div className="absolute bottom-0 right-4 w-28 h-28 bg-white shadow-pin p-2 pb-5 rotate-6 z-20">
-              <div className="w-full h-full bg-gradient-to-br from-amber-400 to-orange-600" />
+              <div className="w-full h-full overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=300&q=80"
+                  alt="Nepali cuisine"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </motion.div>
         </div>
@@ -257,19 +274,9 @@ export default function CompassResultPage() {
                 Fragments of culture matched to your spirit, captured for your exploration.
               </p>
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => scrollScrapbook(-1)}
-                className="w-9 h-9 border border-[#D7CCB3] bg-white flex items-center justify-center text-ink hover:border-primary hover:text-primary transition-colors">
-                <ChevronLeft size={16} />
-              </button>
-              <button onClick={() => scrollScrapbook(1)}
-                className="w-9 h-9 border border-[#D7CCB3] bg-white flex items-center justify-center text-ink hover:border-primary hover:text-primary transition-colors">
-                <ChevronRight size={16} />
-              </button>
-            </div>
           </div>
 
-          <div ref={scrollRef}
+          <div
             className="flex gap-4 overflow-x-auto pb-4 snap-x"
             style={{ scrollbarWidth: "none" }}>
             {(scrapbookItems.length > 0 ? scrapbookItems : [

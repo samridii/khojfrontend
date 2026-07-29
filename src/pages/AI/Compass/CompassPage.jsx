@@ -32,19 +32,19 @@ const MODES = [
 function SelectField({ label, value, onChange, options, placeholder }) {
   return (
     <div className="space-y-1.5">
-      <label className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-copper block">
+      <label className="font-mono text-[11px] font-bold uppercase tracking-[2px] text-copper block">
         {label}
       </label>
       <div className="relative">
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full appearance-none bg-white border border-[#D7CCB3] px-4 py-3 font-body text-sm text-ink focus:outline-none focus:border-copper transition-colors cursor-pointer"
+          className="w-full appearance-none bg-white border border-[#D7CCB3] px-4 py-3.5 font-body text-base text-ink focus:outline-none focus:border-copper transition-colors cursor-pointer"
         >
           <option value="">{placeholder}</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
-        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
+        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-light pointer-events-none" />
       </div>
     </div>
   );
@@ -90,7 +90,7 @@ export default function AICompassPage() {
     <div className="min-h-screen" style={{ background: "#F2EDE4" }}>
 
       {/* Hero section */}
-      <section className="max-w-screen-xl mx-auto px-6 lg:px-20 pt-16 pb-12">
+      <section className="max-w-[1600px] mx-auto px-6 lg:px-12 pt-16 pb-12">
         <div className="flex items-start justify-between gap-16">
 
           {/* Left */}
@@ -98,21 +98,16 @@ export default function AICompassPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex-1 max-w-lg space-y-6"
+            className="flex-1 max-w-xl space-y-6"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-px bg-copper" />
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[3px] text-copper">
-                AI Cultural Compass
-              </span>
-            </div>
+        
 
-            <h1 className="font-display font-bold text-5xl lg:text-6xl leading-[1.05] text-ink-brown">
+            <h1 className="font-display font-bold text-6xl lg:text-7xl leading-[1.05] text-ink-brown">
               Find Your <span className="text-primary">Cultural</span><br />
               <span className="text-ink">North.</span>
             </h1>
 
-            <p className="font-body text-sm leading-relaxed text-ink-muted max-w-sm">
+            <p className="font-body text-base leading-relaxed text-ink-muted max-w-md">
               Map your spirit to the living heritage of Nepal. Our AI Compass translates your seekers' heart into an authentic, community-led journey.
             </p>
 
@@ -122,11 +117,11 @@ export default function AICompassPage() {
                 value={inputText}
                 onChange={e => setInputText(e.target.value)}
                 rows={4}
-                maxLength={500}
+                maxLength={700}
                 placeholder="Describe what you seek… the rhythm of mountain drums, the silence of a high-altitude monastery, or the scent of ancient cedar?"
-                className="w-full bg-transparent px-5 py-4 font-body text-sm text-ink placeholder-gray-400 focus:outline-none resize-none leading-relaxed"
+                className="w-full bg-transparent px-11 py-6 font-body text-base text-ink placeholder-gray-400 focus:outline-none resize-none leading-relaxed"
               />
-              <div className="absolute bottom-3 right-4 font-mono text-[10px] text-gray-300">
+              <div className="absolute bottom-3 right-4 font-mono text-[11px] text-gray-300">
                 {inputText.length}/500
               </div>
             </div>
@@ -137,7 +132,7 @@ export default function AICompassPage() {
                 <button
                   key={tag}
                   onClick={() => setInputText(t => t ? `${t}, ${tag.toLowerCase()}` : tag.toLowerCase())}
-                  className="px-3 py-1 border border-[#D7CCB3] bg-white font-body text-xs text-ink-muted hover:border-copper hover:text-primary transition-all"
+                  className="px-3.5 py-1.5 border border-[#D7CCB3] bg-white font-body text-sm text-ink-muted hover:border-copper hover:text-primary transition-all"
                 >
                   + {tag}
                 </button>
@@ -145,21 +140,28 @@ export default function AICompassPage() {
             </div>
 
             {error && (
-              <p className="font-body text-xs text-red-500">{error}</p>
+              <p className="font-body text-sm text-red-500">{error}</p>
             )}
           </motion.div>
 
-          {/* Right — polaroid */}
+          {/* Right — polaroid with a real heritage photo */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="hidden lg:block flex-shrink-0"
           >
-            <div className="bg-white shadow-ledger p-3 pb-10 w-72 rotate-1">
-              <div className="w-full h-64 bg-gradient-to-br from-amber-700 via-orange-600 to-yellow-700" />
+            <div className="bg-white shadow-ledger p-3 pb-10 w-80 rotate-1">
+              <div className="w-full h-72 overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=600&q=80"
+                  alt="Prayer flags over the Himalayas"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
               <div className="mt-3 px-1">
-                <p className="font-mono text-[9px] text-ink-light tracking-widest uppercase">
+                <p className="font-mono text-[10px] text-ink-light tracking-widest uppercase">
                   LAT 28.394°N · LNG 84.124°E
                 </p>
               </div>
@@ -169,21 +171,21 @@ export default function AICompassPage() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-20">
+      <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
         <div className="border-t border-[#D7CCB3]" />
       </div>
 
       {/* Preferences + Intelligence Mode */}
-      <section className="max-w-screen-xl mx-auto px-6 lg:px-20 py-14">
+      <section className="max-w-[1600px] mx-auto px-6 lg:px-12 py-14">
         <div className="flex flex-col lg:flex-row gap-16">
 
           {/* 01 Personal Preferences */}
           <div className="flex-1 space-y-8">
             <div className="flex items-center gap-4">
-              <span className="font-mono text-xs font-bold text-copper/40 tracking-widest">01</span>
+              <span className="font-mono text-sm font-bold text-copper/40 tracking-widest">01</span>
               <div>
-                <h2 className="font-display font-bold text-2xl text-ink">Personal Preferences</h2>
-                <p className="font-body text-xs text-ink-muted mt-0.5">Fine-tune the logistical framework of your odyssey.</p>
+                <h2 className="font-display font-bold text-3xl text-ink">Personal Preferences</h2>
+                <p className="font-body text-sm text-ink-muted mt-0.5">Fine-tune the logistical framework of your odyssey.</p>
               </div>
             </div>
 
@@ -200,7 +202,7 @@ export default function AICompassPage() {
 
             {/* Interests */}
             <div className="space-y-3">
-              <label className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-copper block">
+              <label className="font-mono text-[11px] font-bold uppercase tracking-[2px] text-copper block">
                 Primary Interests <span className="text-ink-light font-normal">(select up to 4)</span>
               </label>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -210,14 +212,14 @@ export default function AICompassPage() {
                     <button
                       key={id}
                       onClick={() => toggleInterest(id)}
-                      className={`flex flex-col items-center gap-2 p-3 border-2 transition-all duration-200
+                      className={`flex flex-col items-center gap-2 p-4 border-2 transition-all duration-200
                         ${active
-                          ? "border-primary bg-primary/5 text-primary"
+                          ? "border-primary bg-primary/5 text-primary shadow-sm"
                           : "border-[#D7CCB3] bg-white text-ink-muted hover:border-copper hover:text-primary"
                         }`}
                     >
-                      <Icon size={20} strokeWidth={1.5} />
-                      <span className="font-mono text-[9px] uppercase tracking-wider">{label}</span>
+                      <Icon size={22} strokeWidth={1.5} />
+                      <span className="font-mono text-[10px] uppercase tracking-wider">{label}</span>
                     </button>
                   );
                 })}
@@ -226,7 +228,7 @@ export default function AICompassPage() {
 
             {/* Travel Dynamics */}
             <div className="space-y-3">
-              <label className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-copper block">
+              <label className="font-mono text-[11px] font-bold uppercase tracking-[2px] text-copper block">
                 Travel Dynamics
               </label>
               <div className="flex flex-wrap gap-2">
@@ -234,9 +236,9 @@ export default function AICompassPage() {
                   <button
                     key={d}
                     onClick={() => setDynamic(d)}
-                    className={`px-5 py-2 border font-body text-sm transition-all duration-200
+                    className={`px-5 py-2.5 border font-body text-base transition-all duration-200
                       ${dynamic === d
-                        ? "bg-primary border-primary text-white"
+                        ? "bg-primary border-primary text-white shadow-sm"
                         : "border-[#D7CCB3] bg-white text-ink hover:border-primary hover:text-primary"
                       }`}
                   >
@@ -248,17 +250,17 @@ export default function AICompassPage() {
           </div>
 
           {/* 02 Intelligence Mode */}
-          <div className="lg:w-80 space-y-4">
+          <div className="lg:w-96 space-y-4">
             <div className="flex items-center gap-4">
-              <span className="font-mono text-xs font-bold text-copper/40 tracking-widest">02</span>
+              <span className="font-mono text-sm font-bold text-copper/40 tracking-widest">02</span>
               <div>
-                <h2 className="font-display font-bold text-2xl text-ink">Intelligence Mode</h2>
-                <p className="font-body text-xs text-ink-muted mt-0.5">Select a lens for your compass.</p>
+                <h2 className="font-display font-bold text-3xl text-ink">Intelligence Mode</h2>
+                <p className="font-body text-sm text-ink-muted mt-0.5">Select a lens for your compass.</p>
               </div>
             </div>
 
             {/* Mode cards — dark terracotta */}
-            <div className="bg-primary p-4 space-y-2">
+            <div className="bg-primary p-4 space-y-2 shadow-card">
               {MODES.map(({ id, label, desc, Icon }) => {
                 const active = mode === id;
                 return (
@@ -268,13 +270,13 @@ export default function AICompassPage() {
                     className={`w-full flex items-center gap-4 p-4 text-left transition-all duration-200
                       ${active ? "bg-white/15" : "hover:bg-white/8"}`}
                   >
-                    <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0
+                    <div className={`w-11 h-11 flex items-center justify-center flex-shrink-0
                       ${active ? "bg-copper" : "bg-white/10"}`}>
-                      <Icon size={16} className="text-white" strokeWidth={1.5} />
+                      <Icon size={18} className="text-white" strokeWidth={1.5} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-display font-bold text-sm text-white">{label}</p>
-                      <p className="font-body text-xs text-white/60 mt-0.5">{desc}</p>
+                      <p className="font-display font-bold text-base text-white">{label}</p>
+                      <p className="font-body text-sm text-white/60 mt-0.5">{desc}</p>
                     </div>
                     {active && (
                       <div className="w-4 h-4 rounded-full border-2 border-white/60 flex items-center justify-center flex-shrink-0">
@@ -286,24 +288,30 @@ export default function AICompassPage() {
               })}
             </div>
 
-            {/* Map preview */}
-            <div className="border border-[#C8BC9E] p-5 space-y-3" style={{ background: "#E8DFC8" }}>
-              <div
-                className="w-full h-32 relative border border-[#C8BC9E]"
-                style={{
-                  background: "#D4C8A8",
-                  backgroundImage: "linear-gradient(rgba(135,52,21,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(135,52,21,0.08) 1px, transparent 1px)",
-                  backgroundSize: "24px 24px",
-                }}
-              >
-                <div className="absolute inset-3 border border-dashed border-[#873415]/30" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary opacity-30">
-                  <MapPin size={28} fill="currentColor" />
+            {/* Map preview — with a real terrain-style photo behind the grid */}
+            <div className="border border-[#C8BC9E] p-5 space-y-3 shadow-card" style={{ background: "#E8DFC8" }}>
+              <div className="w-full h-40 relative border border-[#C8BC9E] overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1584395631446-e41b0fc3f68d?w=500&q=80"
+                  alt="Himalayan terrain"
+                  className="absolute inset-0 w-full h-full object-cover opacity-70"
+                  loading="lazy"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: "linear-gradient(rgba(135,52,21,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(135,52,21,0.12) 1px, transparent 1px)",
+                    backgroundSize: "24px 24px",
+                  }}
+                />
+                <div className="absolute inset-3 border border-dashed border-[#873415]/40" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary drop-shadow">
+                  <MapPin size={30} fill="currentColor" />
                 </div>
               </div>
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest text-copper">◎ Visualizing Path</p>
-                <p className="font-display font-bold text-sm text-ink mt-1 leading-snug">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-copper">◎ Visualizing Path</p>
+                <p className="font-display font-bold text-base text-ink mt-1 leading-snug">
                   Your bespoke map is being woven from threads of intent.
                 </p>
               </div>
@@ -319,7 +327,7 @@ export default function AICompassPage() {
           disabled={!inputText.trim() || loading}
           whileHover={{ scale: !loading && inputText.trim() ? 1.02 : 1 }}
           whileTap={{ scale: 0.98 }}
-          className={`relative inline-flex items-center gap-3 px-12 py-5 font-display font-bold text-lg text-white shadow-ledger transition-all duration-300
+          className={`relative inline-flex items-center gap-3 px-12 py-5 font-display font-bold text-xl text-white shadow-ledger transition-all duration-300
             ${inputText.trim() && !loading
               ? "bg-primary hover:bg-primary-light cursor-pointer"
               : "bg-primary/40 cursor-not-allowed"
@@ -340,7 +348,7 @@ export default function AICompassPage() {
                 className="flex items-center gap-3"
               >
                 Calibrate My Compass
-                <ArrowRight size={18} />
+                <ArrowRight size={20} />
               </motion.span>
             )}
           </AnimatePresence>
@@ -350,7 +358,7 @@ export default function AICompassPage() {
 
       {/* Bottom features */}
       <section className="border-t border-[#D7CCB3]" style={{ background: "#EAE5D8" }}>
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-20 py-14">
+        <div className="max-w-[1600px] mx-auto px-6 lg:px-12 py-14">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             {[
               { Icon: Users,    title: "Ethical Stewardship", desc: "Prioritising communities that seek sustainable, respectful engagement." },
@@ -359,12 +367,12 @@ export default function AICompassPage() {
             ].map(({ Icon, title, desc }) => (
               <div key={title} className="space-y-3">
                 <div className="flex justify-center">
-                  <div className="w-10 h-10 border border-copper/30 flex items-center justify-center">
-                    <Icon size={20} className="text-copper" strokeWidth={1.5} />
+                  <div className="w-11 h-11 border border-copper/30 flex items-center justify-center">
+                    <Icon size={22} className="text-copper" strokeWidth={1.5} />
                   </div>
                 </div>
-                <h3 className="font-display font-bold text-base text-ink">{title}</h3>
-                <p className="font-body text-xs text-ink-muted leading-relaxed max-w-xs mx-auto">{desc}</p>
+                <h3 className="font-display font-bold text-lg text-ink">{title}</h3>
+                <p className="font-body text-sm text-ink-muted leading-relaxed max-w-xs mx-auto">{desc}</p>
               </div>
             ))}
           </div>

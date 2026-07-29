@@ -17,6 +17,14 @@ const STOP_GRADIENTS = {
   rest:          "from-green-600 via-emerald-700 to-green-900",
 };
 
+const STOP_IMAGES = {
+  cultural_site: "https://images.unsplash.com/photo-1662721737580-b1558a41a49a?w=500&q=80",
+  workshop:      "https://images.unsplash.com/photo-1755011309974-fd02724c4a2d?w=500&q=80",
+  food:          "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=500&q=80",
+  festival:      "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=500&q=80",
+  rest:          "https://images.unsplash.com/photo-1571401835393-8c5f35328320?w=500&q=80",
+};
+
 const BOTTOM_FEATURES = [
   { Icon: Star,      title: "Curated for You",      desc: "AI-powered recommendations" },
   { Icon: Globe,     title: "Authentic Experiences", desc: "Handpicked by local experts" },
@@ -47,7 +55,9 @@ function VintageBg() {
 
 function DayCard({ day, index }) {
   const firstStop = day.stops?.[0];
-  const gradient  = STOP_GRADIENTS[firstStop?.type] || STOP_GRADIENTS.cultural_site;
+  const stopType  = firstStop?.type || "cultural_site";
+  const gradient  = STOP_GRADIENTS[stopType] || STOP_GRADIENTS.cultural_site;
+  const image     = STOP_IMAGES[stopType] || STOP_IMAGES.cultural_site;
   const foodStops = (day.stops || []).filter(s => s.type === "food");
 
   return (
@@ -68,8 +78,16 @@ function DayCard({ day, index }) {
         <div className="flex flex-col sm:flex-row">
 
           {/* Photo area */}
-          <div className="relative sm:w-52 flex-shrink-0 h-44 sm:h-auto">
+          <div className="relative sm:w-52 flex-shrink-0 h-44 sm:h-auto overflow-hidden">
+            {/* Gradient sits underneath as a fallback in case the image fails to load */}
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`}/>
+            <img
+              src={image}
+              alt={firstStop?.place || day.title || "Journey stop"}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              onError={e => { e.target.style.display = "none"; }}
+            />
             {firstStop?.place && (
               <div className="absolute bottom-3 left-3 bg-primary/80 px-3 py-1">
                 <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-white">
@@ -170,18 +188,13 @@ export default function JourneyResultPage() {
     setSaving(true);
     setSaveError("");
     try {
-      await api.post("/journeys", {
-        title:        journey.title,
-        durationDays: journey.durationDays,
-        budget:       journey.budget,
-        startCity:    journey.startCity,
-        travelStyle:  journey.travelStyle,
-        interests:    journey.interests,
-        groupType:    journey.groupType,
-        ethnicFocus:  journey.ethnicFocus,
-        days:         journey.days,
+      await api.post("/collections", {
+        title:       journey.title,
+        description: `AI Journey — ${journey.durationDays} days from ${journey.startCity}`,
+        isPublic:    false,
       });
       setSaved(true);
+      setTimeout(() => navigate("/collections"), 1500);
     } catch (err) {
       setSaveError(getApiError(err));
     } finally {
@@ -210,9 +223,24 @@ export default function JourneyResultPage() {
       {/* Hero Banner */}
       <div className="relative overflow-hidden" style={{ background: "#E8CFC4", minHeight: 260 }}>
         <VintageBg />
-        <div className="relative z-10 max-w-screen-xl mx-auto px-6 lg:px-20 py-12">
-          <div className="flex items-start justify-between gap-8">
 
+        {/* Save button — pinned to the very top-right corner of the hero */}
+        <div className="absolute top-6 right-6 lg:right-20 z-20 flex flex-col items-end gap-1.5">
+          <button
+            onClick={handleSave}
+            disabled={saving || saved}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/90 border border-[#D7CCB3] font-body text-sm text-ink hover:bg-white transition-colors shadow-sm disabled:opacity-60"
+          >
+            <Bookmark size={15}/>
+            {saved ? "Saved to Collections" : "Save to Collections"}
+          </button>
+          {saveError && <p className="font-body text-xs text-red-500">{saveError}</p>}
+        </div>
+
+        <div className="relative z-10 max-w-screen-xl mx-auto px-6 lg:px-20 py-12">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+
+            {/* Left side - Title */}
             <div className="space-y-3 max-w-lg">
               <p className="font-mono text-[10px] font-bold uppercase tracking-[3px] text-primary/70">
                 Ready to Explore?
@@ -225,29 +253,20 @@ export default function JourneyResultPage() {
               </p>
             </div>
 
-            <div className="hidden lg:flex flex-col items-end gap-3">
-              <button
-                onClick={handleSave}
-                disabled={saving || saved}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 border border-[#D7CCB3] font-body text-xs text-ink hover:bg-white transition-colors shadow-sm disabled:opacity-60"
-              >
-                <Bookmark size={13}/>
-                {saved ? "Saved" : saving ? "Saving…" : "Save Offline"}
-              </button>
-              {saveError && <p className="font-body text-xs text-red-500">{saveError}</p>}
-
-              <div className="bg-white/90 border border-[#D7CCB3] p-4 shadow-card min-w-[180px] space-y-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin size={12} className="text-primary"/>
+            {/* Right side - Timeline box (Save button now sits above, pinned to the corner) */}
+            <div className="flex flex-col items-end gap-3 w-full lg:w-auto mt-14 lg:mt-0">
+              <div className="bg-[#F5F0E8] border border-[#D7CCB3] p-5 shadow-card min-w-[200px] w-full lg:w-auto space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin size={14} className="text-primary"/>
                   <span className="font-display font-bold text-sm text-ink">Your Live Timeline</span>
                 </div>
-                <p className="font-body text-xs text-ink-muted">
+                <p className="font-body text-sm text-ink-muted">
                   • {journey.days?.length || 0} Destinations
                 </p>
-                <p className="font-body text-xs text-ink-muted">
+                <p className="font-body text-sm text-ink-muted">
                   • {journey.durationDays} Days
                 </p>
-                <p className="font-body text-xs text-ink-muted capitalize">
+                <p className="font-body text-sm text-ink-muted capitalize">
                   • {journey.budget} budget
                 </p>
               </div>
@@ -260,28 +279,28 @@ export default function JourneyResultPage() {
       <div className="max-w-screen-xl mx-auto px-6 lg:px-20 py-10">
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* LEFT SIDEBAR */}
-          <div className="lg:w-60 flex-shrink-0">
-            <div className="sticky top-24 bg-white border border-[rgba(0,0,0,0.06)] p-5 space-y-5 shadow-card">
+          {/* LEFT SIDEBAR — bigger card, larger type */}
+          <div className="lg:w-96 flex-shrink-0">
+            <div className="sticky top-24 bg-white border border-[rgba(0,0,0,0.06)] p-7 space-y-6 shadow-card">
               <div className="flex items-center gap-2">
-                <Star size={14} className="text-copper"/>
-                <h3 className="font-display font-bold text-sm text-ink">Personalize Your Journey</h3>
+                <Star size={16} className="text-copper"/>
+                <h3 className="font-display font-bold text-base text-ink">Personalize Your Journey</h3>
               </div>
 
               {/* Journey Pace */}
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <label className="font-mono text-[9px] font-bold uppercase tracking-widest text-copper">
+                  <label className="font-mono text-[10px] font-bold uppercase tracking-widest text-copper">
                     Journey Pace
                   </label>
-                  <span className="font-mono text-[9px] text-primary">Soulful</span>
+                  <span className="font-mono text-[10px] text-primary">Soulful</span>
                 </div>
                 <input
                   type="range" min={0} max={100} value={pace}
                   onChange={e => setPace(Number(e.target.value))}
-                  className="w-full h-1 cursor-pointer accent-primary bg-[#E8E2D8]"
+                  className="w-full h-1.5 cursor-pointer accent-primary bg-[#E8E2D8]"
                 />
-                <div className="flex justify-between font-mono text-[9px] text-ink-light">
+                <div className="flex justify-between font-mono text-[10px] text-ink-light">
                   <span>Relaxed</span><span>Intense</span>
                 </div>
               </div>
@@ -289,30 +308,30 @@ export default function JourneyResultPage() {
               {/* Cultural Depth */}
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <label className="font-mono text-[9px] font-bold uppercase tracking-widest text-copper">
+                  <label className="font-mono text-[10px] font-bold uppercase tracking-widest text-copper">
                     Cultural Depth
                   </label>
-                  <span className="font-mono text-[9px] text-primary">Deep Heritage</span>
+                  <span className="font-mono text-[10px] text-primary">Deep Heritage</span>
                 </div>
                 <input
                   type="range" min={0} max={100} value={depth}
                   onChange={e => setDepth(Number(e.target.value))}
-                  className="w-full h-1 cursor-pointer accent-primary bg-[#E8E2D8]"
+                  className="w-full h-1.5 cursor-pointer accent-primary bg-[#E8E2D8]"
                 />
-                <div className="flex justify-between font-mono text-[9px] text-ink-light">
+                <div className="flex justify-between font-mono text-[10px] text-ink-light">
                   <span>Surface</span><span>Immersive</span>
                 </div>
               </div>
 
               {/* Interests */}
               <div className="space-y-2">
-                <label className="font-mono text-[9px] font-bold uppercase tracking-widest text-copper block">
+                <label className="font-mono text-[10px] font-bold uppercase tracking-widest text-copper block">
                   Your Interests
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {(journey.interests || []).map(t => (
                     <span key={t}
-                      className="px-2.5 py-1 font-body text-[11px] bg-primary/10 text-primary border border-primary/20 capitalize">
+                      className="px-2.5 py-1 font-body text-xs bg-primary/10 text-primary border border-primary/20 capitalize">
                       {t}
                     </span>
                   ))}
@@ -320,16 +339,19 @@ export default function JourneyResultPage() {
               </div>
 
               {/* Optimize button */}
-              <button className="w-full py-3 bg-primary text-white font-display font-bold text-sm hover:bg-primary-light transition-colors flex items-center justify-center gap-2 shadow-sm">
-                Optimize Your Odyssey <ArrowRight size={14}/>
+              <button className="w-full py-3.5 bg-primary text-white font-display font-bold text-base hover:bg-primary-light transition-colors flex items-center justify-center gap-2 shadow-sm">
+                Optimize Your Odyssey <ArrowRight size={15}/>
               </button>
 
-              {/* Regenerate */}
+              {/* Regenerate — goldenish, bold */}
               <button
                 onClick={() => navigate("/ai/journey-builder")}
-                className="w-full flex items-center justify-center gap-2 font-body text-xs text-ink-muted hover:text-primary transition-colors"
+                className="w-full flex items-center justify-center gap-2 font-body font-bold text-sm transition-colors"
+                style={{ color: "#B8860B" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#8B6914"}
+                onMouseLeave={e => e.currentTarget.style.color = "#B8860B"}
               >
-                <RefreshCw size={12}/> Regenerate Itinerary
+                <RefreshCw size={13}/> Regenerate Itinerary
               </button>
             </div>
           </div>
@@ -354,8 +376,8 @@ export default function JourneyResultPage() {
         </div>
       </div>
 
-      {/* CTA strip */}
-      <section className="mx-6 lg:mx-20 mb-10 overflow-hidden" style={{ background: "#2D4A35" }}>
+      {/* CTA strip with curved bottom */}
+      <section className="mx-6 lg:mx-20 mb-10 overflow-hidden rounded-b-[50px]" style={{ background: "#2D4A35" }}>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-5 px-8 py-7">
           <div className="space-y-1 max-w-lg">
             <div className="flex items-center gap-2">
